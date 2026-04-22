@@ -7,17 +7,17 @@ import plotly.graph_objects as go
 merged_files = "merged_files"
 
 # Path to the CSV file
-file_path = os.path.join(merged_files, "projetos.csv")
+file_path = os.path.join(merged_files, "projetos_incentivadores.csv")
 
 try:
     graph = nx.Graph()
     
     # Reading the CSV file with UTF-8 encoding
-    df = pd.read_csv(file_path, nrows=100, encoding='utf-8')  # Adjusted to 10,000 rows
+    df = pd.read_csv(file_path, encoding='utf-8')
     print(f"CSV file loaded successfully with {len(df)} rows.")
     
     # Mantendo as colunas com os nomes em português
-    columns_to_keep = ['PRONAC', 'nome', 'area', 'cgccpf', 'ano_projeto', 'UF', 'municipio', 'proponente', 'situacao']
+    columns_to_keep = ['PRONAC', 'nome', 'cgccpf', 'total_doado', 'tipo_pessoa', 'UF', 'municipio']
     df_filtered = df[columns_to_keep]
     
     print(f"Filtered dataframe created with columns: {columns_to_keep}")
@@ -25,20 +25,30 @@ try:
     # Creating nodes and edges
     for idx, row in df_filtered.iterrows():
         # Create project node with ID as string
-        project_node = str(row['nome'])
-        #project_node = str(row['PRONAC'])
-        graph.add_node(project_node, label=row['nome'], area=row['area'], color='blue')
+        project_node = str(int(row['PRONAC']))
+        if project_node not in graph:
+            graph.add_node(project_node, label=project_node, color='gray')
 
-        # Create proponent node if it doesn't exist, with ID as string
-        proponent_node = str(row['proponente'])
-        if proponent_node not in graph:
-            graph.add_node(proponent_node, color='gray')
-
-        # Create edge between project and proponent
-        graph.add_edge(project_node, proponent_node)
+        # Create incentivador node with ID as string
+        incentivador_name = str(row['nome']).upper().strip() 
+        incentivador_cgccpf = str(row['cgccpf']).upper().strip()
+        
+        incentivador_node = incentivador_cgccpf
+        
+        node_color = 'orange' if str(row['tipo_pessoa']).lower() == 'juridica' else 'lightblue'
+        
+        if incentivador_node not in graph:
+            graph.add_node(incentivador_node, label=incentivador_name, color=node_color)
+        
+        # Create edge between incentivador and project
+        graph.add_edge(incentivador_node, project_node)
         
         if idx % 1000 == 0:
             print(f"Processed {idx} rows.")
+        if idx > 1000:
+            break
+        
+    print(f"Graph created with {len(graph.nodes)} nodes and {len(graph.edges)} edges.")
 
     # Generate Plotly graph
     pos = nx.spring_layout(graph)  # Positions for all nodes
@@ -68,8 +78,8 @@ try:
         x, y = pos[node]
         node_trace['x'] += (x,)
         node_trace['y'] += (y,)
-        node_trace['text'] += (node,)  # Tooltip with node ID
-        node_trace['marker']['color'] += (graph.nodes[node].get('color', 'blue'),)
+        node_trace['text'] += (graph.nodes[node].get('label', ''),) #(node,)  # Tooltip with node ID
+        node_trace['marker']['color'] += (graph.nodes[node].get('color', 'gray'),)
 
     fig = go.Figure(data=[edge_trace, node_trace],
                      layout=go.Layout(
@@ -80,7 +90,7 @@ try:
                          yaxis=dict(showgrid=False, zeroline=False)))
     
     # Save the Plotly graph to an HTML file
-    fig.write_html("results/proponentes.html", auto_open=True)
+    fig.write_html("results/incentivadores.html", auto_open=True)
     print("Graph saved and displayed successfully.")
 
 except FileNotFoundError:
@@ -94,3 +104,18 @@ except Exception as e:
     import traceback
     print("Stack trace:")
     traceback.print_exc()
+
+
+
+
+# 1-) Apresentar os dados 
+# 2-) Problema com relacionamentos (resolvido)
+# 3-) Análise das áreas culturais
+# 4-) Análise dos segmentos culturais (no artigo são os 'subfields')
+# 5-) Rede de proponentes
+# 6-) Rede incentivadores
+
+# https://versalic.cultura.gov.br/#/projetos/090347
+# https://versalic.cultura.gov.br/#/projetos/128562
+# https://versalic.cultura.gov.br/#/projetos/159594
+# https://versalic.cultura.gov.br/#/projetos/210173
