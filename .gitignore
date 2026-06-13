@@ -1,2 +1,3 @@
-lib
-venv
+.env
+raw_data
+.venv

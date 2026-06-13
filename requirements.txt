@@ -1,4 +1,5 @@
-pandas
-networkx
-plotly
-scipy
+requests==2.32.3
+apache-airflow==3.2.1
+apache-airflow-providers-celery==3.8.3
+python-dotenv==1.0.0
+boto3==1.34.162
