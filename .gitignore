@@ -1,3 +1,8 @@
 .env
 raw_data
 .venv
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
