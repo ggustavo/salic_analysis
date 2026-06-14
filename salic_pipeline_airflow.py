@@ -13,8 +13,8 @@ if os.path.exists(dotenv_path):
     load_dotenv(dotenv_path)
 
 from airflow import DAG
-from airflow.operators.python import PythonOperator
-from airflow.utils.trigger_rule import TriggerRule
+from airflow.providers.standard.operators.python import PythonOperator
+from airflow.task.trigger_rule import TriggerRule
 from datetime import datetime, timedelta
 
 # Import the core pipeline functions

@@ -88,7 +88,18 @@ def verify_disk_space():
     logger.info("--- STEP 3: VERIFYING LOCAL DISK SPACE ---")
     try:
         storage = StorageClient.get_instance()
-        total, used, free = shutil.disk_usage(storage.local_dir)
+        
+        # Ensure the directory exists or fallback to parent / current directory
+        dir_to_check = storage.local_dir
+        if not os.path.exists(dir_to_check):
+            try:
+                os.makedirs(dir_to_check, exist_ok=True)
+            except Exception:
+                dir_to_check = os.path.dirname(dir_to_check) or '.'
+                if not os.path.exists(dir_to_check):
+                    dir_to_check = '.'
+                    
+        total, used, free = shutil.disk_usage(dir_to_check)
         total_gb = total / (1024**3)
         used_gb = used / (1024**3)
         free_gb = free / (1024**3)
